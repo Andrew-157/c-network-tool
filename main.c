@@ -2,11 +2,15 @@
 #include <ifaddrs.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 int main() {
     struct ifaddrs *ifaddr;
-    int family;
+    //int family;
+    
+    char **names = NULL;
+    int count = 0;
 
     if (getifaddrs(&ifaddr) == -1) {
         perror("getifaddrs");
@@ -14,9 +18,44 @@ int main() {
     }
 
     for (struct ifaddrs *ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
-        family = ifa->ifa_addr->sa_family;
-        printf("%s\n", ifa->ifa_name);
+        //family = ifa->ifa_addr->sa_family;
+        if (count == 0) {
+            names = (char**)malloc(1 * sizeof(char *));
+            if (names == NULL) {
+                fprintf(stderr, "Failed to allocate memory\n");
+                exit(1);
+            }
+            names[0] = (char *)malloc((strlen(ifa->ifa_name) + 1) * sizeof(char));
+            if (names[0] == NULL) {
+                fprintf(stderr, "Failed to allocate memory\n");
+                exit(1);
+            }
+            memcpy(names[0], ifa->ifa_name, strlen(ifa->ifa_name) + 1);
+        } else {
+            names = realloc(names, (count + 1) * sizeof(char *));
+            if (names == NULL) {
+                fprintf(stderr, "Failed to allocate memory\n");
+                exit(1);
+            }
+            names[count] = (char *)malloc((strlen(ifa->ifa_name) + 1) * sizeof(char));
+            if (names[count] == NULL) {
+                fprintf(stderr, "Failed to allocate memory");
+                exit(1);
+            }
+            memcpy(names[count], ifa->ifa_name, strlen(ifa->ifa_name) + 1);
+        }
+        count++;
     }
+
+    for (int i = 0; i < count; i++) {
+        printf("Ifname: %s\n", names[i]);
+    }
+
+    for (int i = 0; i <= count; i++) {
+        free(names[i]);
+    }
+
+    free(names);
 
     freeifaddrs(ifaddr);
     exit(EXIT_SUCCESS);
