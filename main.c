@@ -6,6 +6,7 @@
 
 int main() {
     struct ifaddrs *ifaddr;
+    int family;
 
     if (getifaddrs(&ifaddr) == -1) {
         perror("getifaddrs");
@@ -13,6 +14,7 @@ int main() {
     }
 
     for (struct ifaddrs *ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+        family = ifa->ifa_addr->sa_family;
         printf("%s\n", ifa->ifa_name);
     }
 
