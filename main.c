@@ -8,7 +8,7 @@
 int main() {
     struct ifaddrs *ifaddr;
     //int family;
-    
+
     char **names = NULL;
     int count = 0;
 
@@ -25,34 +25,16 @@ int main() {
                 fprintf(stderr, "Failed to allocate memory\n");
                 exit(1);
             }
-            names[0] = (char *)malloc((strlen(ifa->ifa_name) + 1) * sizeof(char));
-            if (names[0] == NULL) {
-                fprintf(stderr, "Failed to allocate memory\n");
-                exit(1);
-            }
-            memcpy(names[0], ifa->ifa_name, strlen(ifa->ifa_name) + 1);
+            names[0] = ifa->ifa_name;
         } else {
             names = realloc(names, (count + 1) * sizeof(char *));
-            if (names == NULL) {
-                fprintf(stderr, "Failed to allocate memory\n");
-                exit(1);
-            }
-            names[count] = (char *)malloc((strlen(ifa->ifa_name) + 1) * sizeof(char));
-            if (names[count] == NULL) {
-                fprintf(stderr, "Failed to allocate memory");
-                exit(1);
-            }
-            memcpy(names[count], ifa->ifa_name, strlen(ifa->ifa_name) + 1);
+            names[count] = ifa->ifa_name;
         }
         count++;
     }
 
     for (int i = 0; i < count; i++) {
         printf("Ifname: %s\n", names[i]);
-    }
-
-    for (int i = 0; i <= count; i++) {
-        free(names[i]);
     }
 
     free(names);
