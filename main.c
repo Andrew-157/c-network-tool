@@ -19,18 +19,15 @@ int main() {
 
     for (struct ifaddrs *ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
         //family = ifa->ifa_addr->sa_family;
-        if (count == 0) {
-            names = (char**)malloc(1 * sizeof(char *));
-            if (names == NULL) {
-                fprintf(stderr, "Failed to allocate memory\n");
-                exit(1);
-            }
-            names[0] = ifa->ifa_name;
-        } else {
-            names = realloc(names, (count + 1) * sizeof(char *));
-            names[count] = ifa->ifa_name;
+
+        // accoring to `man realloc`:
+        // If ptr is NULL, then the call is equivalent to malloc(size), for all values of size
+        names = (char **)realloc(names, (count + 1) * sizeof(char *));
+        if (names == NULL) {
+            fprintf(stderr, "Failed to allocate memory\n");
+            exit(1);
         }
-        count++;
+        names[count++] = ifa->ifa_name;
     }
 
     for (int i = 0; i < count; i++) {
