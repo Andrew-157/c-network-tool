@@ -13,16 +13,15 @@ struct interface {
 	char *name;
 	char *ipv4_addr;
 	char *ipv6_addr;
-	struct interface *next;
 };
 
 
 int main() {
 	struct ifaddrs *ifaddr;
-
-	int count = 0;
 	int family, s;
+	int count = 0;
 	char host[NI_MAXHOST];
+	struct interface* interfaces;
 
 	if (getifaddrs(&ifaddr) == -1) {
 		perror("getifaddrs");
@@ -35,6 +34,8 @@ int main() {
 			continue;
 		}
 
+		struct interface curr;
+		curr.name = ifa->ifa_name;
 		s = getnameinfo(
 			ifa->ifa_addr,
 			(family == AF_INET) ?
@@ -47,15 +48,32 @@ int main() {
 			NI_NUMERICHOST		
 		);
 
+		if (family == AF_INET) {
+			curr.ipv4_addr = host;
+		} else {
+			curr.ipv6_addr = host;
+		}
+
 		if (s != 0) {
-			printf("getnameinfo() failed: %s\n", gai_strerror(s));
+			fprintf(stderr, "getnameinfo() failed: %s\n", gai_strerror(s));
 			exit(errno);
 		}
 
-		printf("%d. %s:\n\t%s\n", (count + 1), ifa->ifa_name, host);
-		count++;
+		interfaces = (struct interface *)realloc(interfaces, (count + 1) * sizeof(struct interface));
+		if (interfaces == NULL) {
+			fprintf(stderr, "Failed to allocate memory\n");
+			exit(errno);	
+		}
+
+		interfaces[count++] = curr;
+
 	}
 
+	for (int i = 0; i < count; i++) {
+		printf("%s\n", interfaces[i].name);
+	}
+
+	free(interfaces);
 	freeifaddrs(ifaddr);
 	exit(0);
 }
